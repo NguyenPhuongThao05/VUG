@@ -6,7 +6,7 @@ recbole_cdr.config.cd_configurator
 import os
 import copy
 from recbole.config.configurator import Config
-from recbole.evaluator import metric_types, smaller_metrics
+from recbole_cdr.evaluator import metric_types, smaller_metrics
 from recbole.utils import EvaluatorType, ModelType, InputType
 
 from recbole_cdr.utils import get_model, train_mode2state

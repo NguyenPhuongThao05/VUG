@@ -4,8 +4,8 @@ recbole.evaluator.evaluator
 #####################################
 """
 
-from recbole.evaluator.register import metrics_dict
-from recbole.evaluator.collector import DataStruct
+from recbole_cdr.evaluator.register import metrics_dict
+from recbole_cdr.evaluator.collector import DataStruct
 from collections import OrderedDict
 
 from logging import getLogger

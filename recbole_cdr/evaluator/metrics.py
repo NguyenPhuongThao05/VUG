@@ -21,7 +21,7 @@ from sklearn.metrics import auc as sk_auc
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from recbole.evaluator.utils import _binary_clf_curve
-from recbole.evaluator.base_metric import AbstractMetric, TopkMetric, LossMetric
+from recbole_cdr.evaluator.base_metric import AbstractMetric, TopkMetric, LossMetric
 from recbole.utils import EvaluatorType
 
 # TopK Metrics

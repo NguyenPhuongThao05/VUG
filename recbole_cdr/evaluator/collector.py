@@ -4,7 +4,7 @@ recbole.evaluator.collector
 ################################################
 """
 
-from recbole.evaluator.register import Register
+from recbole_cdr.evaluator.register import Register
 import torch
 import copy
 
