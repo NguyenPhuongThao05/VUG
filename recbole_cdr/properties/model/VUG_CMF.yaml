@@ -1,0 +1,51 @@
+# VUG_CMF Model Configuration
+# Combining Virtual User Generation (VUG) with Collective Matrix Factorization (CMF)
+
+# ========== CMF Parameters ==========
+embedding_size: 64
+alpha: 0.5  # balance between source and target loss (0.5 = equal weight)
+lambda: 0.1  # source domain regularization weight
+gamma: 0.1   # target domain regularization weight
+
+# ========== VUG Generator Parameters ==========
+gen_weight: 0.1  # weight for generator loss
+user_weight_attn: 0.5  # balance between user-level and item-level attention
+enhance_mode: "add"  # how to use generated embeddings: "add", "replace", or "concat"
+enhance_weight: 0.5  # weight for virtual embedding enhancement
+use_virtual: True  # whether to use virtual user generation
+
+# ========== Training Parameters ==========
+learning_rate: 0.0005
+train_epochs: ["BOTH:300"]  # train both domains jointly
+# Alternative training strategies:
+# train_epochs: ["BOTH:200", "TARGET:100"]  # pre-train both, then fine-tune target
+# train_epochs: ["TARGET:300"]  # train only on target domain
+
+# ========== Optimization Parameters ==========
+# optimizer: adam
+# weight_decay: 0.0
+
+# ========== Evaluation Parameters ==========
+# eval_args:
+#   split: {'RS': [0.8, 0.1, 0.1]}
+#   mode: full
+#   order: RO
+
+# ========== Notes ==========
+# - alpha: Controls balance between source and target domain losses
+#   * alpha = 0.5: Equal weight for both domains
+#   * alpha > 0.5: More weight on source domain
+#   * alpha < 0.5: More weight on target domain
+#
+# - gen_weight: Controls how much the generator tries to match real source embeddings
+#   * Higher values: Stronger supervision for virtual embeddings
+#   * Lower values: More freedom for generator
+#
+# - enhance_mode:
+#   * "add": Add weighted virtual embeddings to original embeddings
+#   * "replace": Replace embeddings for target-only users with virtual ones
+#   * "concat": Concatenate virtual embeddings with original ones
+#
+# - enhance_weight: Scaling factor for virtual embeddings
+#   * Higher values: Stronger influence of virtual embeddings
+#   * Lower values: Weaker influence, closer to standard CMF
