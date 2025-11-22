@@ -1,13 +1,13 @@
 embedding_size: 64
-alpha: 0.5
-lambda: 0.1
-gamma: 0.1
-gen_weight: 0.1
-user_weight_attn: 0.5
+alpha: 0.3
+lambda: 0.01
+gamma: 0.01
+gen_weight: 0.2
+user_weight_attn: 0.6
 enhance_mode: "add"
-enhance_weight: 0.5
+enhance_weight: 0.8
 use_virtual: True
-learning_rate: 0.0005
-train_epochs: ["BOTH:300"]
-# train_epochs: ["BOTH:200", "TARGET:100"]
+learning_rate: 0.001
+train_epochs: ["BOTH:200", "TARGET:100"]
+# train_epochs: ["BOTH:300"]
 # train_epochs: ["TARGET:300"]
