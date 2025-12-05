@@ -169,7 +169,7 @@ class VUG_CMF(CrossDomainRecommender):
         return scores
 
     def calculate_loss(self, interaction):
-        r"""Calculate total loss combining CMF and VUG generator loss."""
+        r"""Calculate main loss (CMF only) - generator loss is handled separately by trainer."""
         
         # Clear cache at the start of each batch
         self.clear_virtual_cache()
@@ -182,7 +182,7 @@ class VUG_CMF(CrossDomainRecommender):
             raise NotImplementedError(f"Phase {self.phase} not implemented")
 
     def calculate_joint_loss(self, interaction):
-        r"""Calculate joint loss for both domains with virtual enhancement."""
+        r"""Calculate joint loss for both domains (without generator loss)."""
         
         # Extract source domain data
         source_user = interaction[self.SOURCE_USER_ID]
@@ -212,14 +212,10 @@ class VUG_CMF(CrossDomainRecommender):
                      self.get_item_embedding(target_item)
                  )
 
-        # VUG generator loss (train generator to match real source embeddings)
-        loss_gen = self.calculate_gen_loss(interaction)
-
-        # Combined loss
+        # Combined CMF loss (generator loss is handled separately)
         total_loss = (
             self.alpha * loss_s +
-            (1 - self.alpha) * loss_t +
-            loss_gen
+            (1 - self.alpha) * loss_t
         )
 
         return total_loss
@@ -240,36 +236,39 @@ class VUG_CMF(CrossDomainRecommender):
         return loss_t
 
     def calculate_gen_loss(self, interaction):
-        r"""Calculate generator loss: make generated embeddings match real source embeddings
+        r"""Calculate generator loss: make generated embeddings match real embeddings
         for overlapping users."""
         
         if not self.use_virtual:
-            return torch.tensor(0.0, device=interaction[self.TARGET_USER_ID].device)
+            # Create zero loss with gradient flow through generator
+            dummy_loss = 0.0 * sum(p.sum() for p in self.source_generator.parameters())
+            return dummy_loss
         
         # Generate embeddings for users in batch
         user, generated_s_emb, overlap_indices, non_overlap_indices = \
             self.generate_source_embeddings(interaction)
 
-        # If no overlapping users in batch, skip generator loss
+        # If no overlapping users in batch, return small generator regularization
         if overlap_indices.shape[0] == 0:
-            return torch.tensor(0.0, device=interaction[self.TARGET_USER_ID].device)
+            # Small regularization to keep generator parameters active
+            reg_loss = 0.0001 * sum(p.pow(2).sum() for p in self.source_generator.parameters())
+            return reg_loss
 
-        # Real source embeddings for overlapping users
-        real_source_emb = self.user_embedding(user[overlap_indices])
-        
-        # Generated embeddings for overlapping users
+        # For CMF style: we want generated embeddings to be similar to real embeddings
+        # of overlapping users (since we use shared embeddings)
+        real_emb = self.user_embedding(user[overlap_indices])
         gen_for_overlapped = generated_s_emb[overlap_indices]
 
-        # MSE loss between generated and real
-        loss = self.gen_weight * self.gen_loss(gen_for_overlapped, real_source_emb)
+        # MSE loss between generated and real + small regularization
+        mse_loss = self.gen_loss(gen_for_overlapped, real_emb)
+        reg_loss = 0.0001 * sum(p.pow(2).sum() for p in self.source_generator.parameters())
+        
+        total_gen_loss = self.gen_weight * mse_loss + reg_loss
 
-        return loss
+        return total_gen_loss
 
     def generate_source_embeddings(self, interaction=None):
         r"""Generate virtual source embeddings using dual-attention mechanism.
-        
-        This method uses VUG's attention-based generator to create virtual source
-        embeddings for all users (especially non-overlapping target users).
         
         Args:
             interaction: current batch interaction (optional)
@@ -290,30 +289,36 @@ class VUG_CMF(CrossDomainRecommender):
         else:
             user = interaction[self.TARGET_USER_ID]
 
-        # Get target user embeddings as queries
-        user_t_emb = self.user_embedding(user)  # Q_user
-
-        # Compute item-level user embeddings as additional queries
-        Q_item = user_t_emb  # Simplified: use same as user-level
+        # Get user embeddings as queries (shared embeddings in CMF style)
+        user_emb = self.user_embedding(user)  # Q_user
+        
+        # For CMF, we use the same embeddings for both domains
+        # So Q_item is computed as a simple transformation of user embeddings
+        Q_item = user_emb  # Simplified: use same as user-level
         
         # Identify overlapping users in batch
         overlapped_mask = (user < self.overlapped_num_users)
         overlap_indices = torch.nonzero(overlapped_mask).flatten()
         non_overlap_indices = torch.nonzero(~overlapped_mask).flatten()
 
-        # Build keys and values from overlapping users
-        K_user = self.user_embedding(user[overlap_indices])  # target embeddings
-        K_item = K_user  # Simplified
-        V_user = self.user_embedding(user[overlap_indices])  # source embeddings (same in CMF)
-
-        # If no overlapping users, return zero embeddings
+        # If no overlapping users, return zeros with gradient flow
         if overlap_indices.shape[0] == 0:
-            generated_s_emb = torch.zeros_like(user_t_emb)
+            # Return zeros but ensure gradient flows through generator
+            generated_s_emb = torch.zeros_like(user_emb)
+            # Add a small contribution from generator to maintain gradient flow
+            dummy_gen = 0.0 * sum(p.sum() for p in self.source_generator.parameters())
+            generated_s_emb = generated_s_emb + dummy_gen
             return user, generated_s_emb, overlap_indices, non_overlap_indices
+
+        # Build keys and values from overlapping users (shared embeddings)
+        overlapped_users = user[overlap_indices]
+        K_user = self.user_embedding(overlapped_users)  # Keys from overlapping users
+        K_item = K_user  # Simplified: same as user-level
+        V_user = K_user  # Values are the same embeddings (CMF shared style)
 
         # Apply dual-attention generator
         generated_s_emb, attn_weights = self.source_generator(
-            Q_user=user_t_emb,
+            Q_user=user_emb,
             K_user=K_user,
             V_user=V_user,
             Q_item=Q_item,
