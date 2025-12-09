@@ -45,25 +45,34 @@ class VUG_CLFM(CrossDomainRecommender):
         self.SOURCE_LABEL = dataset.source_domain_dataset.label_field
         self.TARGET_LABEL = dataset.target_domain_dataset.label_field
 
-        # Load CLFM parameters
-        self.user_embedding_size = config['user_embedding_size']
-        self.source_item_embedding_size = config['source_item_embedding_size']
-        self.target_item_embedding_size = config['source_item_embedding_size']  # Same as CLFM
-        self.share_embedding_size = config['share_embedding_size']
-        self.alpha = config['alpha']  # balance between source and target loss
-        self.reg_weight = config['reg_weight']  # regularization weight
+        # Load CLFM parameters with default values and type conversion
+        self.user_embedding_size = int(config.get('user_embedding_size', 64))
+        self.source_item_embedding_size = int(config.get('source_item_embedding_size', 64))
+        self.target_item_embedding_size = self.source_item_embedding_size  # Same as CLFM
+        self.share_embedding_size = int(config.get('share_embedding_size', 16))
+        self.alpha = float(config.get('alpha', 0.3))  # balance between source and target loss
+        self.reg_weight = float(config.get('reg_weight', 0.0001))  # regularization weight
+        
+        # Debug print to check values and types
+        print(f"DEBUG: user_embedding_size={self.user_embedding_size} (type: {type(self.user_embedding_size)})")
+        print(f"DEBUG: source_item_embedding_size={self.source_item_embedding_size} (type: {type(self.source_item_embedding_size)})")
+        print(f"DEBUG: share_embedding_size={self.share_embedding_size} (type: {type(self.share_embedding_size)})")
+        
+        # Safety check for None values
+        if any(x is None for x in [self.user_embedding_size, self.source_item_embedding_size, self.share_embedding_size]):
+            raise ValueError("Some embedding sizes are None! Check your config file.")
         
         # Validation for shared dimension
         assert 0 <= self.share_embedding_size <= self.source_item_embedding_size and \
                0 <= self.share_embedding_size <= self.target_item_embedding_size, \
-               "Shared dimension must be <= both source and target item embedding sizes"
+               f"Shared dimension {self.share_embedding_size} must be <= both source {self.source_item_embedding_size} and target {self.target_item_embedding_size} embedding sizes"
         
-        # Load VUG generator parameters
-        self.gen_weight = config['gen_weight']  # weight for generator loss
-        self.enhance_mode = config['enhance_mode']  # how to use generated embeddings
-        self.enhance_weight = config['enhance_weight']  # weight for enhancement
-        self.user_weight_attn = config['user_weight_attn']  # attention weight
-        self.use_virtual = config['use_virtual']  # whether to use virtual embeddings
+        # Load VUG generator parameters with default values
+        self.gen_weight = config.get('gen_weight', 0.15)  # weight for generator loss
+        self.enhance_mode = config.get('enhance_mode', "add")  # how to use generated embeddings
+        self.enhance_weight = config.get('enhance_weight', 0.7)  # weight for enhancement
+        self.user_weight_attn = config.get('user_weight_attn', 0.6)  # attention weight
+        self.use_virtual = config.get('use_virtual', True)  # whether to use virtual embeddings
         
         # Define CLFM embeddings
         self.source_user_embedding = nn.Embedding(self.total_num_users, self.user_embedding_size)

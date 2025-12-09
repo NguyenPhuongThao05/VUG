@@ -1,14 +1,12 @@
-user_embedding_size: 64
-source_item_embedding_size: 64
-share_embedding_size: 16
-alpha: 0.3
-reg_weight: 0.0001
-gen_weight: 0.15
-user_weight_attn: 0.6
+user_embedding_size: 128
+source_item_embedding_size: 128
+share_embedding_size: 32
+alpha: 0.01
+reg_weight: 0.01
+gen_weight: 0.1
+user_weight_attn: 0.5
 enhance_mode: "add"
-enhance_weight: 0.7
+enhance_weight: 0.5
 use_virtual: True
 learning_rate: 0.001
-train_epochs: ["BOTH:200", "TARGET:100"]
-# train_epochs: ["BOTH:300"]
-# train_epochs: ["TARGET:300"]
+train_epochs: ["BOTH:300"]
