@@ -48,7 +48,7 @@ class VUG_CLFM(CrossDomainRecommender):
         # Load CLFM parameters
         self.user_embedding_size = config['user_embedding_size']
         self.source_item_embedding_size = config['source_item_embedding_size']
-        self.target_item_embedding_size = config['target_item_embedding_size']
+        self.target_item_embedding_size = config['source_item_embedding_size']  # Same as CLFM
         self.share_embedding_size = config['share_embedding_size']
         self.alpha = config['alpha']  # balance between source and target loss
         self.reg_weight = config['reg_weight']  # regularization weight
