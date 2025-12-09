@@ -1,0 +1,17 @@
+# VUG without item-level attention (w/o α_u^item)  
+# Set user_weight_attn to 1.0 (only user-level attention)
+
+embedding_size: 64
+n_layers: 2
+reg_weight: 1e-3
+lambda_source: 0.8
+lambda_target: 0.8
+connect_way: concat
+drop_rate: 0.3
+is_transfer: True
+
+gen_weight: 0.1
+user_weight_attn: 1.0    # ← Only user-level attention
+
+enhance_mode: "asrealsource"
+enhance_weight: 1.0

@@ -114,6 +114,9 @@ class VUG_CLFM(CrossDomainRecommender):
             -1, self.user_embedding_size
         ).to(self.target_user_embedding.weight.dtype)
         
+        # Store overlapped_num_users for use in generation
+        self.overlapped_num_users = self.num_overlap_user
+        
         # Storage for generated embeddings
         self.generated_source_emb_cache = None
         

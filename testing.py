@@ -1,10 +1,10 @@
 from recbole_cdr.quick_start.quick_start import run_recbole_cdr
 
-# Run VUG_CLFM model (combining VUG's virtual user generation with CLFM's shared/specific embeddings)
+# Run VUG_BiTGCF model (combining VUG's virtual user generation with BiTGCF's graph convolution)
 res = run_recbole_cdr(
-    model='VUG_CLFM',
+    model='VUG_BiTGCF',
     config_file_list=['./recbole_cdr/properties/dataset/Amazon.yaml',
-                     './recbole_cdr/properties/model/VUG_CLFM.yaml']
+                     './recbole_cdr/properties/model/VUG_BiTGCF.yaml']
 )
 
 import json, numpy as np, torch

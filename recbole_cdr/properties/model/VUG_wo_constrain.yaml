@@ -1,0 +1,17 @@
+# VUG without constraint loss (w/o L_constrain)
+# Disable generator loss to remove constraint component
+
+embedding_size: 64
+n_layers: 2
+reg_weight: 1e-3
+lambda_source: 0.8
+lambda_target: 0.8
+connect_way: concat
+drop_rate: 0.3
+is_transfer: True
+
+gen_weight: 0.0          # ← Disable constraint loss
+user_weight_attn: 0.5
+
+enhance_mode: "asrealsource"
+enhance_weight: 1.0

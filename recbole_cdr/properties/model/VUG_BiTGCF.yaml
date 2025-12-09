@@ -1,0 +1,18 @@
+embedding_size: 64
+alpha: 0.1
+lambda: 0.1
+gamma: 0.1
+n_layers: 2
+lambda_source: 0.8
+lambda_target: 0.8
+connect_way: concat
+drop_rate: 0.3
+is_transfer: True
+gen_weight: 0.1
+user_weight_attn: 0.5
+enhance_mode: "add"
+enhance_weight: 0.5
+use_virtual: True
+learning_rate: 0.0005
+train_epochs: ["BOTH:300"]
+# train_epochs: ["TARGET:300"]

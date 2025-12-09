@@ -82,6 +82,9 @@ class VUG_CMF(CrossDomainRecommender):
             self.num_overlap_user : self.num_overlap_user + self.num_target_only_user
         ] = True
         
+        # Store overlapped_num_users for use in generation
+        self.overlapped_num_users = self.num_overlap_user
+        
         # Expand mask to match embedding dimension
         self.target_nonoverlap_mask = self.target_nonoverlap_mask.expand(
             -1, self.embedding_size
